@@ -21,9 +21,34 @@ router.post("/", async (req, res) => {
 
 
 // GET /composers
+// router.get("/", async (req, res) => {
+// 	const composers = await findComposers();
+// 	res.json(composers);
+// });
+
+//GET all books
 router.get("/", async (req, res) => {
-	const composers = await findComposers();
-	res.json(composers);
+	try {
+		const { name, era, born,  bornFrom, bornTo, limit=10, page=1 } = req.query;
+		const filter = {};
+
+		if (name) filter.name = new RegExp(name,"i");
+		if (era) filter.era = new RegExp(era,"i");
+		if (born) filter.born = parseInt(born);
+
+        if (bornFrom || bornTo) {
+			filter.born = {};
+			if (bornFrom) filter.born.$gte = parseInt(bornFrom);
+			if (bornTo) filter.born.$lte = parseInt(bornTo);
+		}
+
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        const composers = await ComposerModel.find(filter).limit(parseInt(limit)).skip(skip);
+		res.json(composers);
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
 });
 
 // GET /composers/id
