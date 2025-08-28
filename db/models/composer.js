@@ -3,8 +3,17 @@ const mongoose = require("mongoose");
 const composerSchema = new mongoose.Schema(
 	{
 		name: { type: String, required: true, trim: true, unique: true },
-		born: { type: Number, required: true },
-		death: { type: Number },
+		born: { 
+            type: Number, 
+            required: true, 
+            min: [0, "Year cannot be negative"],
+			max: [new Date().getFullYear(), "Year cannot be in the future"],
+        },
+		death: { 
+            type: Number,
+            min: [0, "Year cannot be negative"],
+			max: [new Date().getFullYear(), "Year cannot be in the future"]
+        },
 		era: { type: String, required: true, trim: true },
 		bio: { type: String, required: true },
 		notableWorks: { 

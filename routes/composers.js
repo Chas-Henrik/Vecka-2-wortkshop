@@ -19,12 +19,12 @@ router.post("/", async (req, res) => {
         }
 
 		const createdComposer = await createComposer(req.body);
-		res.status(201).json(createdComposer);
+		return res.status(201).json(createdComposer);
 	} catch (err) {
 		if (err.code === 11000) {
 			return res.status(409).json({ error: "Name must be unique" });
 		}
-		res
+		return res
 			.status(400)
 			.json({ error: "Validation error", details: err.message });
 	}
@@ -35,9 +35,9 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
     try {
         const composers = await findComposers(req);
-        res.json(composers);
+        return res.json(composers);
     } catch (error) {
-		res.status(500).json({ error: error.message });
+		return res.status(500).json({ error: error.message });
 	}
 });
 
@@ -69,7 +69,7 @@ router.get("/stats", async (req, res) => {
 			}))
 		};
 
-		res.json(result);
+		return res.json(result);
 	} catch (error) {
 		res.status(500).json({ error: error.message });
 	}
@@ -131,9 +131,9 @@ router.patch("/:id/notable-work", async (req, res) => {
 			return res.status(404).json({ error: "Composer not found" });
 		}
 
-		res.json(updatedComposer);
+		return res.json(updatedComposer);
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+		return res.status(500).json({ error: error.message });
 	}
 });
 
@@ -173,8 +173,8 @@ router.delete("/:id/notable-work", async (req, res) => {
 			return res.status(404).json({ error: "Composer not found" });
 		}
 
-		res.json(updatedComposer);
+		return res.json(updatedComposer);
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+		return res.status(500).json({ error: error.message });
 	}
 });
