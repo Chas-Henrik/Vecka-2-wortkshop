@@ -41,6 +41,40 @@ router.get("/", async (req, res) => {
 	}
 });
 
+// GET /composers/stats
+router.get("/stats", async (req, res) => {
+	try {
+		const stats = await ComposerModel.aggregate([
+			{
+				$facet: {
+					totalComposers: [{ $count: "count" }],
+					averageBornYear: [
+						{ $group: { _id: null, avgBorn: { $avg: "$born" } } }
+					],
+					eraDistribution: [
+						{ $group: { _id: "$era", count: { $sum: 1 } } },
+						{ $sort: { count: -1 } }
+					]
+				}
+			}
+		]);
+
+		// Flatten and clean up the result
+		const result = {
+			totalComposers: stats[0].totalComposers[0]?.count || 0,
+			averageBornYear: stats[0].averageBornYear[0]?.avgBorn || null,
+			eraDistribution: stats[0].eraDistribution.map(item => ({
+				era: item._id,
+				count: item.count
+			}))
+		};
+
+		res.json(result);
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+});
+
 // GET /composers/id
 router.get("/:id", async (req, res) => {
 	//Hämta composer med id
