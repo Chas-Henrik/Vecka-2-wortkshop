@@ -7,7 +7,18 @@ const composerSchema = new mongoose.Schema(
 		death: { type: Number },
 		era: { type: String, required: true, trim: true },
 		bio: { type: String, required: true },
-		notableWorks: { type: [String], default: [] },
+		notableWorks: { 
+            type: [String], 
+            default: [],
+            validate: {
+				validator: function (value) {
+					// Ensure no duplicates in the array
+					const uniqueValues = new Set(value);
+					return uniqueValues.size === value.length;
+				},
+				message: "Duplicate works are not allowed in notableWorks",
+			},
+        },
 	},
 	{ timestamps: true }
 );

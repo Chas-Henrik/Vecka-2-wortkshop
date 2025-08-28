@@ -41,31 +41,6 @@ router.get("/", async (req, res) => {
 	}
 });
 
-//GET all books
-// router.get("/", async (req, res) => {
-// 	try {
-// 		const { name, era, born,  bornFrom, bornTo, limit=10, page=1 } = req.query;
-// 		const filter = {};
-
-// 		if (name) filter.name = new RegExp(name,"i");
-// 		if (era) filter.era = new RegExp(era,"i");
-// 		if (born) filter.born = parseInt(born);
-
-//         if (bornFrom || bornTo) {
-// 			filter.born = {};
-// 			if (bornFrom) filter.born.$gte = parseInt(bornFrom);
-// 			if (bornTo) filter.born.$lte = parseInt(bornTo);
-// 		}
-
-//         const skip = (parseInt(page) - 1) * parseInt(limit);
-
-//         const composers = await ComposerModel.find(filter).limit(parseInt(limit)).skip(skip);
-// 		res.json(composers);
-// 	} catch (error) {
-// 		res.status(500).json({ error: error.message });
-// 	}
-// });
-
 // GET /composers/id
 router.get("/:id", async (req, res) => {
 	//Hämta composer med id
@@ -85,6 +60,7 @@ router.get("/:id", async (req, res) => {
 	}
 });
 
+// PUT /composers/id
 router.put("/:id", async (req, res) => {
 	//Uppdatera en specifik composer
 	try {
@@ -101,6 +77,33 @@ router.put("/:id", async (req, res) => {
 	}
 });
 
+// PATCH /composers/:id/notable-work
+router.patch("/:id/notable-work", async (req, res) => {
+	try {
+		const { id } = req.params;
+		const { work } = req.body;
+        console.log("work", work)
+		if (!work || typeof work !== "string") {
+			return res.status(400).json({ error: "A valid 'work' string is required" });
+		}
+
+		const updatedComposer = await ComposerModel.findByIdAndUpdate(
+			id,
+			{ $addToSet: { notableWorks: work } }, // <== No duplicates
+			{ new: true, runValidators: true }
+		).select("_id name notableWorks");
+
+		if (!updatedComposer) {
+			return res.status(404).json({ error: "Composer not found" });
+		}
+
+		res.json(updatedComposer);
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+});
+
+// DELETE /composers/id
 router.delete("/:id", async (req, res) => {
 	//Ta bort en composer baserat på ID
 	try {
@@ -115,3 +118,29 @@ router.delete("/:id", async (req, res) => {
 });
 
 module.exports = router;
+
+// DELETE /composers/:id/notable-work
+router.delete("/:id/notable-work", async (req, res) => {
+	try {
+		const { id } = req.params;
+		const { work } = req.body;
+
+		if (!work || typeof work !== "string") {
+			return res.status(400).json({ error: "A valid 'work' string is required" });
+		}
+
+		const updatedComposer = await ComposerModel.findByIdAndUpdate(
+			id,
+			{ $pull: { notableWorks: work } },
+			{ new: true, runValidators: true }
+		).select("_id name notableWorks");
+
+		if (!updatedComposer) {
+			return res.status(404).json({ error: "Composer not found" });
+		}
+
+		res.json(updatedComposer);
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+});
