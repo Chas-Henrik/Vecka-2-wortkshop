@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
-const { createComposer, findComposers } = require("../db/composerCrud");
+const { createComposer, findComposers, composersStats } = require("../db/composerCrud");
 const ComposerModel = require("../db/models/composer");
 const validateModel = require("../db/validateFields");
 
@@ -44,30 +44,7 @@ router.get("/", async (req, res) => {
 // GET /composers/stats
 router.get("/stats", async (req, res) => {
 	try {
-		const stats = await ComposerModel.aggregate([
-			{
-				$facet: {
-					totalComposers: [{ $count: "count" }],
-					averageBornYear: [
-						{ $group: { _id: null, avgBorn: { $avg: "$born" } } }
-					],
-					eraDistribution: [
-						{ $group: { _id: "$era", count: { $sum: 1 } } },
-						{ $sort: { count: -1 } }
-					]
-				}
-			}
-		]);
-
-		// Flatten and clean up the result
-		const result = {
-			totalComposers: stats[0].totalComposers[0]?.count || 0,
-			averageBornYear: stats[0].averageBornYear[0]?.avgBorn || null,
-			eraDistribution: stats[0].eraDistribution.map(item => ({
-				era: item._id,
-				count: item.count
-			}))
-		};
+		const result = await composersStats();
 
 		return res.json(result);
 	} catch (error) {
