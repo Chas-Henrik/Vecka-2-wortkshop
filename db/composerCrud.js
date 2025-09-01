@@ -21,17 +21,17 @@ async function findComposers(req) {
         if (bornTo) filter.born.$lte = parseInt(bornTo);
     }
 
-    const sortBy = { sort: 1 }; 
-
-    if (sort === "asc") {
-        sortBy.born = 1;
-    } else if (sort === "desc") {
-        sortBy.born = -1;
+    // Build sort object dynamically
+    let sortBy = {};
+    if (sort) {
+        const sortField = sort.startsWith("-") ? sort.slice(1) : sort;
+        const sortOrder = sort.startsWith("-") ? -1 : 1;
+        sortBy[sortField] = sortOrder;
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    return composers = await ComposerModel.find(filter).sort(sortBy).limit(parseInt(limit)).skip(skip);
+    return composers = await ComposerModel.find(filter).lean().sort(sortBy).limit(parseInt(limit)).skip(skip);
 }
 
 module.exports = { createComposer, findComposers };
